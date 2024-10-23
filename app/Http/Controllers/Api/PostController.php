@@ -3,15 +3,28 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\Post\PostCollection;
+use App\Http\Resources\Post\PostResource;
 use App\Models\Post;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class PostController extends Controller
 {
     public function index()
     {
-        $data = Post::all();
-        return response()->json($data, 200);
+        // $data = Post::all();
+        // return response()->json($data, 200);
+
+        // return response()->json(new PostCollection($data), 200);
+
+        DB::listen(function ($query) {
+            var_dump($query->sql);
+        });
+        $data = Post::with(['user',])->paginate(5);
+
+        // $data = Post::paginate(5);
+        return new PostCollection($data);
     }
 
     public function show($id)
@@ -24,7 +37,10 @@ class PostController extends Controller
             ], 404);
         }
 
-        return response()->json($data, 200);
+        // return response()->json($data, 200);
+
+        // return new PostResource($data);
+        return response()->json(new PostResource($data), 200);
     }
 
     public function store(Request $request)
