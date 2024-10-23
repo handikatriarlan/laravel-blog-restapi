@@ -8,6 +8,7 @@ use App\Http\Resources\Post\PostResource;
 use App\Models\Post;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 
 class PostController extends Controller
 {
@@ -18,12 +19,15 @@ class PostController extends Controller
 
         // return response()->json(new PostCollection($data), 200);
 
-        DB::listen(function ($query) {
-            var_dump($query->sql);
-        });
+        // DB::listen(function ($query) {
+        //     var_dump($query->sql);
+        // });
+
+        // return request()->user();
         $data = Post::with(['user',])->paginate(5);
 
         // $data = Post::paginate(5);
+
         return new PostCollection($data);
     }
 
@@ -43,15 +47,37 @@ class PostController extends Controller
         return response()->json(new PostResource($data), 200);
     }
 
+    // public function store(Request $request)
+    // {
+    //     $validatedData = $request->validate([
+    //         'title' => 'required|string|min:5',
+    //     ]);
+
+    //     $data = Post::create($validatedData);
+
+    //     return response()->json($data, 201);
+    // }
+
     public function store(Request $request)
     {
-        $validatedData = $request->validate([
-            'title' => 'required|string|min:5',
+        $data = $request->all();
+
+        $validator = Validator::make($request->all(), [
+            'title' => ['required', 'min:5'],
+            'body' => ['required'],
         ]);
 
-        $data = Post::create($validatedData);
+        if ($validator->fails()) {
+            return response()->json([
+                'error' => $validator->errors()
+            ], 400);
+        }
 
-        return response()->json($data, 201);
+        // $response = Post::create($data);
+
+        $response = request()->user()->posts()->create($data);
+
+        return response()->json($response, 201);
     }
 
 
