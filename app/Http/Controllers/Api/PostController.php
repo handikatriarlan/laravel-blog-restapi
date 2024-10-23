@@ -41,8 +41,11 @@ class PostController extends Controller
 
     public function update(Request $request, $id)
     {
+        $validatedData = $request->validate([
+            'title' => 'required|string|min:5',
+        ]);
+
         $data = Post::find($id);
-        $data->update($request->all());
 
         if (is_null($data)) {
             return response()->json([
@@ -50,8 +53,11 @@ class PostController extends Controller
             ], 404);
         }
 
+        $data->update($validatedData);
+
         return response()->json($data, 200);
     }
+
 
     public function destroy($id)
     {
